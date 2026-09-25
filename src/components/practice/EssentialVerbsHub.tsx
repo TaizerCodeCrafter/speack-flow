@@ -20,6 +20,9 @@ import {
   ChevronDown,
   RotateCcw,
   BookOpen,
+  Edit2,
+  Trash2,
+  Save,
 } from 'lucide-react';
 import { EssentialVerbItem, VerbPackCard, UserProfile } from '../../types';
 import {
@@ -85,6 +88,77 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
   // Flashcard mode state
   const [flashcardIndex, setFlashcardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // Editing Verb Modal State
+  const [editingVerb, setEditingVerb] = useState<EssentialVerbItem | null>(null);
+  const [editSinhala, setEditSinhala] = useState('');
+  const [editV1, setEditV1] = useState('');
+  const [editV2, setEditV2] = useState('');
+  const [editV3, setEditV3] = useState('');
+  const [editV4, setEditV4] = useState('');
+  const [editV5, setEditV5] = useState('');
+  const [editCategory, setEditCategory] = useState('Daily Routine');
+  const [editCardId, setEditCardId] = useState('essential-verbs-1');
+  const [editExampleSentence, setEditExampleSentence] = useState('');
+  const [editExampleSinhala, setEditExampleSinhala] = useState('');
+  const [editIsIrregular, setEditIsIrregular] = useState(false);
+
+  const handleStartEdit = (item: EssentialVerbItem) => {
+    setEditingVerb(item);
+    setEditSinhala(item.sinhalaMeaning || '');
+    setEditV1(item.verb || '');
+    setEditV2(item.pastSimple || '');
+    setEditV3(item.pastParticiple || '');
+    setEditV4(item.sOrEsForm || '');
+    setEditV5(item.ingForm || '');
+    setEditCategory(item.category || 'Daily Routine');
+    setEditCardId(item.cardId || activePack.id);
+    setEditExampleSentence(item.exampleSentence || '');
+    setEditExampleSinhala(item.exampleSinhala || '');
+    setEditIsIrregular(!!item.isIrregular);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVerb || !editV1.trim() || !editSinhala.trim()) {
+      showToast('කරුණාකර Verb සහ සිංහල තේරුම ඇතුළත් කරන්න.');
+      return;
+    }
+
+    const updated = verbs.map((v) => {
+      if (v.id === editingVerb.id) {
+        return {
+          ...v,
+          verb: editV1.trim(),
+          sinhalaMeaning: editSinhala.trim(),
+          pastSimple: editV2.trim() || v.pastSimple,
+          pastParticiple: editV3.trim() || v.pastParticiple,
+          sOrEsForm: editV4.trim() || v.sOrEsForm,
+          ingForm: editV5.trim() || v.ingForm,
+          category: editCategory.trim(),
+          cardId: editCardId || activePack.id,
+          exampleSentence: editExampleSentence.trim(),
+          exampleSinhala: editExampleSinhala.trim(),
+          isIrregular: editIsIrregular,
+        };
+      }
+      return v;
+    });
+
+    setVerbs(updated);
+    saveStoredEssentialVerbs(updated);
+    setEditingVerb(null);
+    showToast(`"${editV1}" ක්‍රියාපදය සාර්ථකව යාවත්කාලීන විය!`);
+  };
+
+  const handleDeleteVerb = (id: string, name: string) => {
+    if (window.confirm(`"${name}" ක්‍රියාපදය මෙම Card එකෙන් ඉවත් කිරීමට (Delete) ඔබට විශ්වාසද?`)) {
+      const updated = verbs.filter((v) => v.id !== id);
+      setVerbs(updated);
+      saveStoredEssentialVerbs(updated);
+      showToast(`"${name}" ක්‍රියාපදය ඉවත් කරන ලදී.`);
+    }
+  };
 
   // Reload on window storage change
   useEffect(() => {
@@ -317,11 +391,11 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
           <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
             Select a Verb Card below to explore daily action verbs, forms (V1, V2, V3, V4, V5) and Sinhala meanings (අධ්‍යයනය සඳහා පහත කාඩ්පතක් තෝරන්න).
           </p>
-          {isAdmin && onOpenAdmin && (
+          {onOpenAdmin && (
             <div className="pt-1.5 flex items-center justify-center gap-2">
               <button
                 onClick={onOpenAdmin}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer hover:scale-102"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5 text-rose-400" />
                 <span>Admin Studio (කාඩ්පත් කළමනාකරණය)</span>
@@ -507,95 +581,178 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
               </button>
             </div>
 
-            {/* Quick Add Verb Button - Strictly Admin Only */}
-            {isAdmin && (
-              <button
-                onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer active:scale-98"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{isAddFormOpen ? 'Close Add Form' : `+ Add Verb to ${activePack.title}`}</span>
-              </button>
-            )}
+            {/* Quick Add Verb Button */}
+            <button
+              onClick={() => setIsAddFormOpen(!isAddFormOpen)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer active:scale-98"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{isAddFormOpen ? 'Close Add Form' : `+ Add Verb`}</span>
+            </button>
 
-            {/* Admin Studio Button - Strictly Admin Only */}
-            {isAdmin && onOpenAdmin && (
+            {/* Admin Studio Button */}
+            {onOpenAdmin && (
               <button
                 id="verbs-open-admin-btn"
                 onClick={onOpenAdmin}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer active:scale-98"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5 text-rose-400" />
-                <span>Admin</span>
+                <span className="hidden sm:inline">Admin Studio</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* VERB CARDS SELECTOR (Essential Verbs 1, Essential Verbs 2...) */}
-      <div className="bg-white/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-slate-200/80 p-3 sm:p-4 shadow-2xs space-y-2">
-        <div className="flex items-center justify-between">
+      {/* VERB CARDS SELECTOR (2 Visual Cards: Essential Verbs 1 & Essential Verbs 2) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-400">
-              Select Verb Card:
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+              Select Verb Card (කාඩ්පත තෝරන්න):
             </span>
-            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-              Active: {activePack.title}
+            <span className="text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">
+              Open: {activePack.title}
             </span>
           </div>
 
           {isAdmin && onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
-              className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-xl border border-rose-200 shadow-2xs"
             >
-              <Plus className="w-3 h-3" />
-              <span>+ Create / Manage Cards in Admin</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Admin Studio</span>
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
+        {/* 2 Full Interactive Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
           {packs.map((pack) => {
             const isCurrent = pack.id === activePack.id;
             const countInPack = verbs.filter((v) => (v.cardId || 'essential-verbs-1') === pack.id).length;
+            const isFirst = pack.id === 'essential-verbs-1';
 
             return (
-              <button
+              <div
                 key={pack.id}
                 onClick={() => {
                   setActivePackId(pack.id);
                   setFlashcardIndex(0);
                 }}
-                className={`group flex items-center gap-2.5 px-4 py-2 rounded-2xl font-bold text-xs sm:text-sm border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                className={`relative rounded-3xl p-4 sm:p-5 transition-all duration-200 cursor-pointer overflow-hidden border ${
                   isCurrent
-                    ? 'bg-rose-600 text-white border-rose-700 shadow-md ring-2 ring-rose-400/30'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/90 shadow-2xs'
+                    ? isFirst
+                      ? 'bg-gradient-to-br from-rose-50/90 via-white to-amber-50/40 border-rose-400 ring-4 ring-rose-500/15 shadow-md'
+                      : 'bg-gradient-to-br from-indigo-50/90 via-white to-sky-50/40 border-indigo-400 ring-4 ring-indigo-500/15 shadow-md'
+                    : 'bg-white hover:bg-slate-50/90 border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300'
                 }`}
               >
-                <Zap className={`w-3.5 h-3.5 ${isCurrent ? 'fill-white' : 'text-rose-500'}`} />
-                <span>{pack.title}</span>
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${
-                    isCurrent ? 'bg-white/25 text-white' : 'bg-white text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  {countInPack} Verbs
-                </span>
-              </button>
+                {/* Active Indicator Top Accent Bar */}
+                {isCurrent && (
+                  <div
+                    className={`absolute top-0 left-0 right-0 h-1.5 ${
+                      isFirst
+                        ? 'bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600'
+                        : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-500'
+                    }`}
+                  />
+                )}
+
+                <div className="flex items-start justify-between gap-3">
+                  {/* Left: Icon & Titles */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xs transition-transform ${
+                        isCurrent
+                          ? isFirst
+                            ? 'bg-rose-600 text-white shadow-rose-500/30 ring-2 ring-rose-200 scale-105'
+                            : 'bg-indigo-600 text-white shadow-indigo-500/30 ring-2 ring-indigo-200 scale-105'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {isFirst ? (
+                        <Zap className={`w-5 h-5 sm:w-6 sm:h-6 ${isCurrent ? 'fill-white' : ''}`} />
+                      ) : (
+                        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                          {pack.title}
+                        </h3>
+                        {isCurrent && (
+                          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        )}
+                      </div>
+                      <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                        {pack.subtitle || (isFirst ? 'Daily Action Verbs & Forms' : 'Advanced & Conversational Verbs')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right: Count Badge */}
+                  <span
+                    className={`text-xs font-extrabold px-3 py-1 rounded-full border shadow-2xs whitespace-nowrap shrink-0 ${
+                      isCurrent
+                        ? isFirst
+                          ? 'bg-rose-100 text-rose-800 border-rose-300'
+                          : 'bg-indigo-100 text-indigo-800 border-indigo-300'
+                        : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}
+                  >
+                    {countInPack} Verbs
+                  </span>
+                </div>
+
+                {/* Description */}
+                <p className="text-xs text-slate-500 mt-2.5 leading-relaxed line-clamp-1">
+                  {pack.description || (isFirst
+                    ? 'Master 250 vital action verbs with Sinhala meanings and 5 forms.'
+                    : 'Next level action verbs and expressive conversational vocabulary.')}
+                </p>
+
+                {/* Bottom Bar: Status + Open Action */}
+                <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="text-[11px] font-bold">
+                    {isCurrent ? (
+                      <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 shadow-2xs">
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        <span>Active & Open (දැනට විවෘතයි)</span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">
+                        {countInPack > 0 ? `${countInPack} words available` : 'Empty pack (වචන නොමැත)'}
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePackId(pack.id);
+                      setFlashcardIndex(0);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black shadow-2xs transition-all cursor-pointer ${
+                      isCurrent
+                        ? isFirst
+                          ? 'bg-rose-600 text-white shadow-rose-500/20'
+                          : 'bg-indigo-600 text-white shadow-indigo-500/20'
+                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>{isCurrent ? 'Viewing Verbs (බලමින්)' : 'Open Card (විවෘත කරන්න)'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             );
           })}
-
-          {isAdmin && onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white hover:bg-rose-50 text-rose-700 border border-dashed border-rose-300 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ New Card</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -972,7 +1129,7 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
             <div className="col-span-2 sm:col-span-2 text-indigo-700">Past Part. (V3)</div>
             <div className="hidden sm:block sm:col-span-1 text-emerald-700">s/es (V4)</div>
             <div className="hidden sm:block sm:col-span-1 text-sky-700">ing (V5)</div>
-            <div className="col-span-2 sm:col-span-1 text-center">Audio</div>
+            <div className="col-span-2 sm:col-span-1 text-center">Actions</div>
           </div>
 
           {/* Downward List Items */}
@@ -1029,8 +1186,8 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                       {item.ingForm || `${item.verb}ing`}
                     </div>
 
-                    {/* Audio & Copy Controls */}
-                    <div className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1">
+                    {/* Audio & Actions Controls */}
+                    <div className="col-span-2 sm:col-span-1 flex items-center justify-center gap-0.5 sm:gap-1">
                       <button
                         id={`speak-btn-${item.id}`}
                         onClick={() =>
@@ -1050,13 +1207,29 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                       </button>
 
                       <button
+                        onClick={() => handleStartEdit(item)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer"
+                        title="Edit verb (සංස්කරණය කරන්න)"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteVerb(item.id, item.verb)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                        title="Delete verb (ඉවත් කරන්න)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
                         onClick={() =>
                           handleCopy(
                             `${item.sinhalaMeaning}: ${item.verb}, ${item.pastSimple}, ${item.pastParticiple}, ${item.sOrEsForm || item.verb + 's'}, ${item.ingForm || item.verb + 'ing'}`,
                             `cmp-${item.id}`
                           )
                         }
-                        className="hidden sm:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+                        className="hidden lg:inline-flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
                         title="Copy all forms"
                       >
                         {isCopied ? (
@@ -1091,7 +1264,7 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                   <th className="py-3 px-3.5 text-indigo-700">Past Participle (V3)</th>
                   <th className="py-3 px-3.5 text-emerald-700">s/es (V4)</th>
                   <th className="py-3 px-3.5 text-sky-700">ing (V5)</th>
-                  <th className="py-3 px-3.5 text-center">Listen</th>
+                  <th className="py-3 px-3.5 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -1122,22 +1295,40 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                         {item.ingForm || `${item.verb}ing`}
                       </td>
                       <td className="py-2.5 px-3.5 text-center">
-                        <button
-                          onClick={() =>
-                            handleSpeak(
-                              `${item.verb}. Past tense: ${item.pastSimple}. Past participle: ${item.pastParticiple}.`,
-                              `tbl-${item.id}`
-                            )
-                          }
-                          className={`p-1.5 rounded-xl transition-all cursor-pointer ${
-                            isSpeaking
-                              ? 'bg-rose-500 text-white shadow-xs'
-                              : 'text-rose-600 hover:bg-rose-100'
-                          }`}
-                          title="Pronounce Verb Forms"
-                        >
-                          <Volume2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() =>
+                              handleSpeak(
+                                `${item.verb}. Past tense: ${item.pastSimple}. Past participle: ${item.pastParticiple}.`,
+                                `tbl-${item.id}`
+                              )
+                            }
+                            className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                              isSpeaking
+                                ? 'bg-rose-500 text-white shadow-xs'
+                                : 'text-rose-600 hover:bg-rose-100'
+                            }`}
+                            title="Pronounce Verb Forms"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleStartEdit(item)}
+                            className="p-1.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer"
+                            title="Edit verb (සංස්කරණය කරන්න)"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteVerb(item.id, item.verb)}
+                            className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                            title="Delete verb (ඉවත් කරන්න)"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1199,6 +1390,22 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                           title="Pronounce Verb"
                         >
                           <Volume2 className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleStartEdit(item)}
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer"
+                          title="Edit verb (සංස්කරණය කරන්න)"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteVerb(item.id, item.verb)}
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                          title="Delete verb (ඉවත් කරන්න)"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -1339,6 +1546,213 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
       )}
         </>
       )}
+
+      {/* Edit Verb Modal Popup */}
+      <AnimatePresence>
+        {editingVerb && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col my-auto max-h-[90vh]"
+            >
+              {/* Modal Header */}
+              <div className="px-5 py-4 bg-gradient-to-r from-rose-500 to-indigo-600 text-white flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Edit2 className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black">
+                      ක්‍රියාපදය සංස්කරණය (Edit Verb)
+                    </h3>
+                    <p className="text-[11px] text-white/80 font-medium">
+                      #{editingVerb.number || 1} • {editingVerb.verb} ({editingVerb.sinhalaMeaning})
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingVerb(null)}
+                  className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Form */}
+              <form onSubmit={handleSaveEdit} className="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                {/* Pack Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Card (කාඩ්පත තෝරන්න):
+                  </label>
+                  <select
+                    value={editCardId}
+                    onChange={(e) => setEditCardId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs sm:text-sm font-semibold focus:outline-rose-500"
+                  >
+                    {packs.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sinhala Meaning */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    සිංහල තේරුම (Sinhala Meaning) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editSinhala}
+                    onChange={(e) => setEditSinhala(e.target.value)}
+                    placeholder="උදා: කනවා, බොනවා, යනවා..."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 focus:outline-rose-500"
+                  />
+                </div>
+
+                {/* The 5 Forms Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Present (V1) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editV1}
+                      onChange={(e) => setEditV1(e.target.value)}
+                      placeholder="e.g. eat, go"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 focus:outline-rose-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-rose-700 mb-1">
+                      Past (V2)
+                    </label>
+                    <input
+                      type="text"
+                      value={editV2}
+                      onChange={(e) => setEditV2(e.target.value)}
+                      placeholder="e.g. ate, went"
+                      className="w-full px-3 py-2 rounded-xl border border-rose-200 text-xs sm:text-sm font-bold text-rose-700 focus:outline-rose-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-indigo-700 mb-1">
+                      Past Participle (V3)
+                    </label>
+                    <input
+                      type="text"
+                      value={editV3}
+                      onChange={(e) => setEditV3(e.target.value)}
+                      placeholder="e.g. eaten, gone"
+                      className="w-full px-3 py-2 rounded-xl border border-indigo-200 text-xs sm:text-sm font-bold text-indigo-700 focus:outline-rose-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-emerald-700 mb-1">
+                      s/es Form (V4)
+                    </label>
+                    <input
+                      type="text"
+                      value={editV4}
+                      onChange={(e) => setEditV4(e.target.value)}
+                      placeholder="e.g. eats, goes"
+                      className="w-full px-3 py-2 rounded-xl border border-emerald-200 text-xs sm:text-sm font-semibold text-emerald-800 focus:outline-rose-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-bold text-sky-700 mb-1">
+                      Continuous / ing Form (V5)
+                    </label>
+                    <input
+                      type="text"
+                      value={editV5}
+                      onChange={(e) => setEditV5(e.target.value)}
+                      placeholder="e.g. eating, going"
+                      className="w-full px-3 py-2 rounded-xl border border-sky-200 text-xs sm:text-sm font-semibold text-sky-800 focus:outline-rose-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Example Sentences */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <label className="block text-xs font-bold text-slate-700">
+                    උදාහරණ වාක්‍ය (Example Sentence):
+                  </label>
+                  <input
+                    type="text"
+                    value={editExampleSentence}
+                    onChange={(e) => setEditExampleSentence(e.target.value)}
+                    placeholder="e.g. I eat rice every day."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-rose-500"
+                  />
+                  <input
+                    type="text"
+                    value={editExampleSinhala}
+                    onChange={(e) => setEditExampleSinhala(e.target.value)}
+                    placeholder="උදා: මම හැමදාම බත් කනවා."
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-rose-500"
+                  />
+                </div>
+
+                {/* Category & Irregular Flag */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <div className="flex-1 min-w-[140px]">
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                      Category:
+                    </label>
+                    <input
+                      type="text"
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      placeholder="e.g. Daily Routine"
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-rose-500"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer pt-4">
+                    <input
+                      type="checkbox"
+                      checked={editIsIrregular}
+                      onChange={(e) => setEditIsIrregular(e.target.checked)}
+                      className="rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                    />
+                    <span>Irregular Verb</span>
+                  </label>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setEditingVerb(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel (අවලංගු කරන්න)
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-sm transition-all cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Changes (සුරකින්න)</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
