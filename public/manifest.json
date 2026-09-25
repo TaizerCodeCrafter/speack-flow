@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "SpeakFlow - Active English Learning & Fluency",
+  "short_name": "SpeakFlow",
+  "description": "Master English with active fluency, speaking drills, interactive practice cards, and pronunciation guides by SpeakFlow.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#0f172a",
+  "categories": ["education", "productivity", "language"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
