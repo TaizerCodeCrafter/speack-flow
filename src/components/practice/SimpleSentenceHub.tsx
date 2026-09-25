@@ -32,6 +32,7 @@ import {
   speakText,
   restoreDefaultHaveDoBeSentences,
   restoreDefaultModalSentences,
+  restoreDefaultMixedAdvanceSentences,
   restoreAllPackSentences,
 } from '../../data/simpleSentencesData';
 import { getCurrentUser } from '../../utils/authStorage';
@@ -126,7 +127,14 @@ export const SimpleSentenceHub: React.FC<SimpleSentenceHubProps> = ({
 
   const sentencesInActivePack = useMemo(() => {
     if (!activePack) return [];
-    return sentences.filter((s) => (s.cardId || 'simple-sentences-1') === activePack.id);
+    return sentences
+      .filter((s) => (s.cardId || 'simple-sentences-1') === activePack.id)
+      .sort((a, b) => {
+        if (a.number != null && b.number != null) return a.number - b.number;
+        if (a.number != null) return -1;
+        if (b.number != null) return 1;
+        return 0;
+      });
   }, [sentences, activePack]);
 
   // Audio Playback
@@ -458,17 +466,17 @@ export const SimpleSentenceHub: React.FC<SimpleSentenceHubProps> = ({
 
             <button
               onClick={() => {
-                if (window.confirm('Restore all 200+ sentences from both PDFs to cards? (PDF ගොනු දෙකේම ඇති වාක්‍ය 200+ කාඩ්පත් වෙත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                if (window.confirm('Restore all 1000 sentences from all PDFs to cards? (PDF ගොනු 3හිම ඇති සියලුම වාක්‍ය 1000 [100+100+800] කාඩ්පත් වෙත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
                   const restored = restoreAllPackSentences();
                   setSentences(restored);
-                  showToast('All 200+ sentences restored successfully (වාක්‍ය 200+ සාර්ථකව එක් විය)!');
+                  showToast('All 1000 sentences restored successfully (වාක්‍ය 1000 සාර්ථකව එක් විය)!');
                 }
               }}
-              title="Restore all 200+ sentences from both PDFs"
+              title="Restore all 1000 sentences from all PDFs"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 text-xs font-bold shadow-2xs transition-all cursor-pointer hover:scale-102"
             >
               <RotateCcw className="w-3.5 h-3.5 text-purple-600" />
-              <span>Reset 200+ Sentences</span>
+              <span>Reset 1000 Sentences</span>
             </button>
 
             {onOpenAdmin && (
@@ -892,6 +900,24 @@ export const SimpleSentenceHub: React.FC<SimpleSentenceHubProps> = ({
               </button>
             </div>
 
+            {/* Reset / Reload sentences for this Card */}
+            {(activePack.id === 'mixed-advance' || activePack.title.toLowerCase().trim() === 'mixed advance') && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Restore all 800 Mixed Advance sentences to this card? ("Mixed Advance" කාඩ්පතට PDF එකේ වාක්‍ය 800 ම යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                    const restored = restoreDefaultMixedAdvanceSentences();
+                    setSentences(restored);
+                    showToast('800 Mixed Advance sentences loaded successfully (වාක්‍ය 800 සාර්ථකව එක් විය)!');
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 font-bold text-xs shadow-2xs transition-all cursor-pointer"
+                title="Restore 800 Mixed Advance sentences from PDF"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+                <span>Reset 800</span>
+              </button>
+            )}
+
             {/* Quick Add Sentence Button */}
             <button
               onClick={() => setIsAddFormOpen(!isAddFormOpen)}
@@ -1088,13 +1114,13 @@ export const SimpleSentenceHub: React.FC<SimpleSentenceHubProps> = ({
                   {/* Number + English & Sinhala */}
                   <div className="flex items-start gap-3.5 flex-1 min-w-0">
                     <div
-                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 mt-0.5 border transition-colors ${
+                      className={`min-w-8 h-8 px-1.5 sm:min-w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 mt-0.5 border transition-colors ${
                         isSpeaking
                           ? 'bg-sky-600 text-white border-sky-700 shadow-xs'
                           : 'bg-sky-50 text-sky-800 border-sky-200'
                       }`}
                     >
-                      {String(idx + 1).padStart(2, '0')}
+                      {item.number ? `#${item.number}` : String(idx + 1).padStart(2, '0')}
                     </div>
 
                     <div className="flex-1 min-w-0">

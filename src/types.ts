@@ -49,6 +49,7 @@ export interface SubCardExample {
 export interface SimpleSentenceItem {
   id: string;
   cardId?: string; // which Sentence Pack Card it belongs to (e.g. "simple-sentences-1")
+  number?: number; // 1 to 800+
   english: string;
   sinhala: string;
   category?: string;

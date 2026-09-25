@@ -30,6 +30,7 @@ import {
   DEFAULT_SENTENCE_PACKS,
   restoreDefaultHaveDoBeSentences,
   restoreDefaultModalSentences,
+  restoreDefaultMixedAdvanceSentences,
   restoreAllPackSentences,
 } from '../../data/simpleSentencesData';
 
@@ -438,28 +439,35 @@ export const SimpleSentenceManager: React.FC<SimpleSentenceManagerProps> = ({ on
 
   // Filtered sentences based on active Card, search & category
   const filteredSentences = useMemo(() => {
-    return sentences.filter((s) => {
-      // 1. Card filter
-      if (selectedPackId !== 'all') {
-        const itemCardId = s.cardId || 'simple-sentences-1';
-        if (itemCardId !== selectedPackId) return false;
-      }
+    return sentences
+      .filter((s) => {
+        // 1. Card filter
+        if (selectedPackId !== 'all') {
+          const itemCardId = s.cardId || 'simple-sentences-1';
+          if (itemCardId !== selectedPackId) return false;
+        }
 
-      // 2. Category filter
-      const matchesCat =
-        listCategoryFilter === 'all' ||
-        (s.category || 'General').toLowerCase() === listCategoryFilter.toLowerCase();
-      if (!matchesCat) return false;
+        // 2. Category filter
+        const matchesCat =
+          listCategoryFilter === 'all' ||
+          (s.category || 'General').toLowerCase() === listCategoryFilter.toLowerCase();
+        if (!matchesCat) return false;
 
-      // 3. Search query
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        s.english.toLowerCase().includes(q) ||
-        s.sinhala.toLowerCase().includes(q) ||
-        (s.category && s.category.toLowerCase().includes(q))
-      );
-    });
+        // 3. Search query
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          s.english.toLowerCase().includes(q) ||
+          s.sinhala.toLowerCase().includes(q) ||
+          (s.category && s.category.toLowerCase().includes(q))
+        );
+      })
+      .sort((a, b) => {
+        if (a.number != null && b.number != null) return a.number - b.number;
+        if (a.number != null) return -1;
+        if (b.number != null) return 1;
+        return 0;
+      });
   }, [sentences, selectedPackId, listCategoryFilter, searchQuery]);
 
   // Color theme class helper for cards
@@ -558,27 +566,54 @@ export const SimpleSentenceManager: React.FC<SimpleSentenceManagerProps> = ({ on
             <button
               type="button"
               onClick={() => {
-                if (selectedPackId === 'simple-sentences-2') {
-                  if (window.confirm('Restore 100 Modal sentences (Can/Will/Would/Should/Must) to this card? ("Can / Will / Would / Should / Must" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                const targetPack = packs.find((p) => p.id === selectedPackId);
+                const isMixedAdvance =
+                  selectedPackId === 'mixed-advance' ||
+                  (targetPack && targetPack.title.toLowerCase().trim() === 'mixed advance');
+
+                if (isMixedAdvance) {
+                  if (
+                    window.confirm(
+                      'Restore all 800 Mixed Advance sentences to this card? ("Mixed Advance" කාඩ්පතට PDF එකේ වාක්‍ය 800 ම යාවත්කාලීන කිරීමට අවශ්‍යද?)'
+                    )
+                  ) {
+                    const restored = restoreDefaultMixedAdvanceSentences();
+                    setSentences(restored);
+                    onShowToast('800 Mixed Advance sentences restored to "Mixed Advance" card!');
+                  }
+                } else if (selectedPackId === 'simple-sentences-2') {
+                  if (
+                    window.confirm(
+                      'Restore 100 Modal sentences (Can/Will/Would/Should/Must) to this card? ("Can / Will / Would / Should / Must" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)'
+                    )
+                  ) {
                     const restored = restoreDefaultModalSentences();
                     setSentences(restored);
                     onShowToast('100 Modal sentences restored to "Can / Will / Would / Should / Must"!');
                   }
                 } else if (selectedPackId === 'simple-sentences-1') {
-                  if (window.confirm('Restore 100 Have/Do/Be sentences to "Have / Do / Be" card? ("Have / Do / Be" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                  if (
+                    window.confirm(
+                      'Restore 100 Have/Do/Be sentences to "Have / Do / Be" card? ("Have / Do / Be" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)'
+                    )
+                  ) {
                     const restored = restoreDefaultHaveDoBeSentences();
                     setSentences(restored);
                     onShowToast('100 Have/Do/Be sentences restored successfully!');
                   }
                 } else {
-                  if (window.confirm('Restore all 200+ sentences from both PDFs to cards? (PDF ගොනු දෙකේම වාක්‍ය 200+ නැවත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                  if (
+                    window.confirm(
+                      'Restore all 1000 sentences from all PDFs to cards? (PDF ගොනුවල ඇති සියලුම වාක්‍ය 1000 [100+100+800] නැවත යාවත්කාලීන කිරීමට අවශ්‍යද?)'
+                    )
+                  ) {
                     const restored = restoreAllPackSentences();
                     setSentences(restored);
-                    onShowToast('All 200+ sentences from both PDFs restored successfully!');
+                    onShowToast('All 1000 sentences restored successfully!');
                   }
                 }
               }}
-              title="Restore 100 sentences from PDF to active card"
+              title="Restore sentences from PDF to active card"
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -587,7 +622,9 @@ export const SimpleSentenceManager: React.FC<SimpleSentenceManagerProps> = ({ on
                   ? 'Reset Modal 100'
                   : selectedPackId === 'simple-sentences-1'
                   ? 'Reset Have/Do/Be 100'
-                  : 'Reset All 200+'}
+                  : selectedPackId === 'mixed-advance' || (activePack && activePack.title.toLowerCase().trim() === 'mixed advance')
+                  ? 'Reset Mixed 800'
+                  : 'Reset All (1000)'}
               </span>
             </button>
           </div>
@@ -1241,8 +1278,8 @@ export const SimpleSentenceManager: React.FC<SimpleSentenceManagerProps> = ({ on
                   }`}
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-mono text-[11px] font-bold shrink-0 mt-0.5">
-                      {originalIndex + 1}
+                    <span className="min-w-6 h-6 px-1 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-mono text-[11px] font-bold shrink-0 mt-0.5">
+                      {item.number ? `#${item.number}` : originalIndex + 1}
                     </span>
 
                     <div className="flex-1 min-w-0">

@@ -1,8 +1,9 @@
 import { SimpleSentenceItem, SentenceCategoryMeta, SentencePackCard } from '../types';
 import { PDF_100_HAVE_DO_BE_SENTENCES } from './pdf100HaveDoBeSentences';
 import { PDF_100_MODAL_SENTENCES } from './pdf100ModalSentences';
+import { PDF_800_MIXED_ADVANCE_SENTENCES } from './pdf800MixedAdvanceSentences';
 
-export { PDF_100_HAVE_DO_BE_SENTENCES, PDF_100_MODAL_SENTENCES };
+export { PDF_100_HAVE_DO_BE_SENTENCES, PDF_100_MODAL_SENTENCES, PDF_800_MIXED_ADVANCE_SENTENCES };
 
 export const SIMPLE_SENTENCES_STORAGE_KEY = 'taizerflow_simple_sentences_v2';
 export const SIMPLE_SENTENCES_CATEGORIES_KEY = 'taizerflow_sentence_categories_v1';
@@ -29,6 +30,16 @@ export const DEFAULT_SENTENCE_PACKS: SentencePackCard[] = [
     iconName: 'Sparkles',
     colorTheme: 'purple',
     createdAt: 1700000001000,
+  },
+  {
+    id: 'mixed-advance',
+    title: 'Mixed Advance',
+    subtitle: 'Daily Conversation & Routine',
+    description: 'Master 800 comprehensive real-world English sentences in sequential order with accurate Sinhala translations and natural audio.',
+    tag: 'Mixed Advance (800 Sentences)',
+    iconName: 'Sparkles',
+    colorTheme: 'sky',
+    createdAt: 1730000000000,
   },
 ];
 
@@ -64,12 +75,22 @@ export function getStoredSentencePacks(): SentencePackCard[] {
           }
         }
 
+        // Ensure Mixed Advance card exists
+        const hasMixed = updated.some(
+          (p: SentencePackCard) => p.id === 'mixed-advance' || p.title.toLowerCase().trim() === 'mixed advance'
+        );
+        if (!hasMixed) {
+          updated.push(DEFAULT_SENTENCE_PACKS[2]);
+          hasChanges = true;
+        }
+
         DEFAULT_SENTENCE_PACKS.forEach((defaultPack) => {
-          if (!updated.some((p: SentencePackCard) => p.id === defaultPack.id)) {
+          if (!updated.some((p: SentencePackCard) => p.id === defaultPack.id || p.title.toLowerCase().trim() === defaultPack.title.toLowerCase().trim())) {
             updated.push(defaultPack);
             hasChanges = true;
           }
         });
+
         if (hasChanges) {
           saveStoredSentencePacks(updated);
         }
@@ -92,6 +113,62 @@ export function saveStoredSentencePacks(packs: SentencePackCard[]): void {
 }
 
 export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
+  {
+    id: 'morning_routine',
+    name: 'Morning & Routine',
+    sinhalaName: 'උදෑසන හා දින චර්යාව',
+    description: 'Waking up, getting ready, and everyday routine habits',
+    iconName: 'Sun',
+    colorTheme: 'amber',
+  },
+  {
+    id: 'study_learning',
+    name: 'Study & Learning',
+    sinhalaName: 'ඉගෙනුම හා පාඩම්',
+    description: 'Learning English, fast comprehension, and skill practice',
+    iconName: 'BookOpen',
+    colorTheme: 'emerald',
+  },
+  {
+    id: 'food_meals',
+    name: 'Food & Meals',
+    sinhalaName: 'කෑම බීම හා ආහාර',
+    description: 'Meals, cooking, dinner, and eating habits',
+    iconName: 'Smile',
+    colorTheme: 'rose',
+  },
+  {
+    id: 'drinks_refreshment',
+    name: 'Drinks & Refreshment',
+    sinhalaName: 'පාන වර්ග හා ප්‍රබෝධය',
+    description: 'Water, tea, healthy beverages, and refreshment',
+    iconName: 'Sparkles',
+    colorTheme: 'teal',
+  },
+  {
+    id: 'communication_truth',
+    name: 'Communication & Truth',
+    sinhalaName: 'සන්නිවේදනය හා සත්‍යය',
+    description: 'Speaking truth, sharing opinions, and conversation',
+    iconName: 'MessageSquare',
+    colorTheme: 'sky',
+  },
+  {
+    id: 'feelings_emotions',
+    name: 'Feelings & Emotions',
+    sinhalaName: 'හැඟීම් හා සිතුවිලි',
+    description: 'Happiness, overcoming sadness, courage, and confidence',
+    iconName: 'Smile',
+    colorTheme: 'purple',
+  },
+  {
+    id: 'work_career',
+    name: 'Work & Career',
+    sinhalaName: 'රැකියාව හා වෘත්තිය',
+    description: 'Jobs, hard work, office tasks, and professional life',
+    iconName: 'Briefcase',
+    colorTheme: 'indigo',
+  },
   {
     id: 'can_could',
     name: 'Can & Could',
@@ -259,94 +336,7 @@ export const DEFAULT_SENTENCE_CATEGORIES = DEFAULT_CATEGORY_METAS.map((m) => m.n
 export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   ...PDF_100_HAVE_DO_BE_SENTENCES,
   ...PDF_100_MODAL_SENTENCES,
-  {
-    id: 'sent-sample-1',
-    cardId: 'simple-sentences-1',
-    english: 'I wake up at six in the morning.',
-    sinhala: 'මම උදෑසන හයට අවදි වෙමි.',
-    category: 'Daily Life',
-    createdAt: 1700000000001,
-  },
-  {
-    id: 'sent-sample-2',
-    cardId: 'simple-sentences-1',
-    english: 'She prepares breakfast for the family.',
-    sinhala: 'ඇය පවුල සඳහා උදෑසන ආහාරය පිළියෙල කරයි.',
-    category: 'Daily Life',
-    createdAt: 1700000000002,
-  },
-  {
-    id: 'sent-sample-3',
-    cardId: 'simple-sentences-1',
-    english: 'We drink coffee together every afternoon.',
-    sinhala: 'අපි සෑම දහවල් කාලයකම එකට කෝපි බොමු.',
-    category: 'Daily Life',
-    createdAt: 1700000000003,
-  },
-  {
-    id: 'sent-sample-4',
-    cardId: 'simple-sentences-1',
-    english: 'This is my favorite English book.',
-    sinhala: 'මේ මගේ ප්‍රියතම ඉංග්‍රීසි පොතයි.',
-    category: 'Basics',
-    createdAt: 1700000000004,
-  },
-  {
-    id: 'sent-sample-5',
-    cardId: 'simple-sentences-1',
-    english: 'The weather is very pleasant today.',
-    sinhala: 'අද කාලගුණය ඉතා ප්‍රසන්නයි.',
-    category: 'Basics',
-    createdAt: 1700000000005,
-  },
-  {
-    id: 'sent-sample-6',
-    cardId: 'simple-sentences-2',
-    english: 'Where is the nearest bus station?',
-    sinhala: 'ළඟම ඇති බස් නැවතුම්පොළ කොහේද?',
-    category: 'Questions',
-    createdAt: 1700000000006,
-  },
-  {
-    id: 'sent-sample-7',
-    cardId: 'simple-sentences-2',
-    english: 'What time does the English lesson start?',
-    sinhala: 'ඉංග්‍රීසි පාඩම ආරම්භ වන්නේ කීයටද?',
-    category: 'Questions',
-    createdAt: 1700000000007,
-  },
-  {
-    id: 'sent-sample-8',
-    cardId: 'simple-sentences-1',
-    english: 'Good morning! Have a wonderful day ahead.',
-    sinhala: 'සුබ උදෑසනක්! ඔබට සුබ දවසක් වේවා.',
-    category: 'Greetings',
-    createdAt: 1700000000008,
-  },
-  {
-    id: 'sent-sample-9',
-    cardId: 'simple-sentences-1',
-    english: 'Thank you so much for your kind help.',
-    sinhala: 'ඔබගේ කාරුණික සහයෝගයට බොහෝම ස්තූතියි.',
-    category: 'Greetings',
-    createdAt: 1700000000009,
-  },
-  {
-    id: 'sent-sample-10',
-    cardId: 'simple-sentences-2',
-    english: 'I completed all my assignments yesterday.',
-    sinhala: 'මම ඊයේ මගේ සියලුම පැවරුම් අවසන් කළෙමි.',
-    category: 'Work & Study',
-    createdAt: 1700000000010,
-  },
-  {
-    id: 'sent-sample-11',
-    cardId: 'simple-sentences-2',
-    english: 'Could you please show me the way to the city center?',
-    sinhala: 'කරුණාකර මට නගර මධ්‍යස්ථානයට යන මාර්ගය පෙන්විය හැකිද?',
-    category: 'Travel',
-    createdAt: 1700000000011,
-  },
+  ...PDF_800_MIXED_ADVANCE_SENTENCES,
 ];
 
 export function getStoredCategoryMetas(): SentenceCategoryMeta[] {
@@ -420,6 +410,9 @@ export function saveStoredSentenceCategories(categories: string[]): void {
 
 export function getStoredSimpleSentences(): SimpleSentenceItem[] {
   try {
+    const storedPacks = getStoredSentencePacks();
+    const mixedCard = storedPacks.find((p) => p.title.toLowerCase().trim() === 'mixed advance') || { id: 'mixed-advance' };
+
     let raw = localStorage.getItem(SIMPLE_SENTENCES_STORAGE_KEY);
     if (!raw) {
       const legacyRaw = localStorage.getItem('taizerflow_simple_sentences_v1');
@@ -435,7 +428,13 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
               category: item.category || 'General',
               createdAt: item.createdAt || Date.now(),
             }));
-            const withPdf = [...PDF_100_HAVE_DO_BE_SENTENCES, ...PDF_100_MODAL_SENTENCES, ...normalized];
+            const mapped800 = PDF_800_MIXED_ADVANCE_SENTENCES.map((s) => ({ ...s, cardId: mixedCard.id }));
+            const withPdf = [
+              ...PDF_100_HAVE_DO_BE_SENTENCES,
+              ...PDF_100_MODAL_SENTENCES,
+              ...mapped800,
+              ...normalized,
+            ];
             saveStoredSimpleSentences(withPdf);
             return withPdf;
           }
@@ -451,14 +450,26 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
       let needsSave = false;
       let workingList = [...parsed];
 
-      // Auto-merge the 100 Have/Do/Be sentences and 100 Modal sentences if they are missing
       const existingIds = new Set(workingList.map((s: any) => s.id));
       const missingHaveDoBe = PDF_100_HAVE_DO_BE_SENTENCES.filter((s) => !existingIds.has(s.id));
       const missingModal = PDF_100_MODAL_SENTENCES.filter((s) => !existingIds.has(s.id));
+      const missingMixed = PDF_800_MIXED_ADVANCE_SENTENCES.filter((s) => !existingIds.has(s.id));
 
-      if (missingHaveDoBe.length > 0 || missingModal.length > 0) {
-        workingList = [...missingHaveDoBe, ...missingModal, ...workingList];
+      if (missingHaveDoBe.length > 0 || missingModal.length > 0 || missingMixed.length > 0) {
+        const mappedMixed = missingMixed.map((s) => ({ ...s, cardId: mixedCard.id }));
+        workingList = [...missingHaveDoBe, ...missingModal, ...mappedMixed, ...workingList];
         needsSave = true;
+      }
+
+      // If user's Mixed Advance card has a dynamic ID, map all mixed-adv items to it
+      if (mixedCard && mixedCard.id) {
+        workingList = workingList.map((s) => {
+          if (s.id && s.id.startsWith('mixed-adv-') && s.cardId !== mixedCard.id) {
+            needsSave = true;
+            return { ...s, cardId: mixedCard.id };
+          }
+          return s;
+        });
       }
 
       const normalized = workingList.map((item: Partial<SimpleSentenceItem>, idx: number) => {
@@ -476,6 +487,7 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
         return {
           id: item.id || `sentence-${Date.now()}-${idx}`,
           cardId: item.cardId,
+          number: item.number,
           english: (item.english || '').trim(),
           sinhala: (item.sinhala || '').trim(),
           category: item.category || 'General',
@@ -520,12 +532,31 @@ export function restoreDefaultModalSentences(): SimpleSentenceItem[] {
   return restored;
 }
 
+export function restoreDefaultMixedAdvanceSentences(): SimpleSentenceItem[] {
+  const current = getStoredSimpleSentences();
+  const storedPacks = getStoredSentencePacks();
+  const mixedCard = storedPacks.find((p) => p.title.toLowerCase().trim() === 'mixed advance') || { id: 'mixed-advance' };
+  const existingOther = current.filter((s) => !s.id.startsWith('mixed-adv-'));
+  const mapped800 = PDF_800_MIXED_ADVANCE_SENTENCES.map((s) => ({ ...s, cardId: mixedCard.id }));
+  const restored = [...mapped800, ...existingOther];
+  saveStoredSimpleSentences(restored);
+  return restored;
+}
+
 export function restoreAllPackSentences(): SimpleSentenceItem[] {
   const current = getStoredSimpleSentences();
+  const storedPacks = getStoredSentencePacks();
+  const mixedCard = storedPacks.find((p) => p.title.toLowerCase().trim() === 'mixed advance') || { id: 'mixed-advance' };
   const existingOther = current.filter(
-    (s) => !s.id.startsWith('have-do-be-') && !s.id.startsWith('modal-sent-')
+    (s) => !s.id.startsWith('have-do-be-') && !s.id.startsWith('modal-sent-') && !s.id.startsWith('mixed-adv-')
   );
-  const restored = [...PDF_100_HAVE_DO_BE_SENTENCES, ...PDF_100_MODAL_SENTENCES, ...existingOther];
+  const mapped800 = PDF_800_MIXED_ADVANCE_SENTENCES.map((s) => ({ ...s, cardId: mixedCard.id }));
+  const restored = [
+    ...PDF_100_HAVE_DO_BE_SENTENCES,
+    ...PDF_100_MODAL_SENTENCES,
+    ...mapped800,
+    ...existingOther,
+  ];
   saveStoredSimpleSentences(restored);
   return restored;
 }
