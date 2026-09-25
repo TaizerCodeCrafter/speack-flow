@@ -123,6 +123,12 @@ export function saveAdminSettings(settings: AdminSettings): void {
   try {
     localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(settings));
     window.dispatchEvent(new Event('admin-settings-changed'));
+    // Sync to MongoDB Atlas
+    fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    }).catch(() => {});
   } catch (err) {
     console.error('Failed to save admin settings', err);
   }
@@ -333,6 +339,13 @@ export function registerUser(
   const updated = [createdUser, ...users];
   saveStoredUsers(updated);
 
+  // Sync new user to MongoDB Atlas
+  fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(createdUser),
+  }).catch(() => {});
+
   return {
     success: true,
     user: createdUser,
@@ -474,6 +487,13 @@ export function approveUser(userId: string, approvedBy: string = 'Admin'): boole
     if (current && current.id === userId) {
       setCurrentUser({ ...current, status: 'approved', approvedAt: Date.now(), approvedBy });
     }
+
+    // Sync to MongoDB Atlas
+    fetch(`/api/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', approvedBy }),
+    }).catch(() => {});
   }
 
   return updated;
@@ -498,6 +518,13 @@ export function rejectOrPendingUser(userId: string): boolean {
 
   if (updated) {
     saveStoredUsers(newUsers);
+
+    // Sync to MongoDB Atlas
+    fetch(`/api/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'pending' }),
+    }).catch(() => {});
   }
 
   return updated;
@@ -526,6 +553,13 @@ export function suspendUser(userId: string): boolean {
     if (current && current.id === userId) {
       logoutUser();
     }
+
+    // Sync to MongoDB Atlas
+    fetch(`/api/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'rejected' }),
+    }).catch(() => {});
   }
 
   return updated;
@@ -576,6 +610,13 @@ export function updateUserProfile(
     setCurrentUser(updatedUser);
   }
 
+  // Sync to MongoDB Atlas
+  fetch(`/api/users/${userId}/xp`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ xp: updatedUser.xp, level: updatedUser.level }),
+  }).catch(() => {});
+
   return { success: true, user: updatedUser };
 }
 
@@ -590,6 +631,12 @@ export function deleteUser(userId: string): boolean {
     if (current && current.id === userId) {
       logoutUser();
     }
+
+    // Sync to MongoDB Atlas
+    fetch(`/api/users/${userId}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+
     return true;
   }
   return false;
@@ -643,4 +690,34 @@ export function exportUsersToCSV(): string {
   ]);
 
   return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+}
+
+// ----------------------------------------------------
+// MongoDB Atlas Sync Function & Auto-Init
+// ----------------------------------------------------
+export async function syncFromMongoDB(): Promise<void> {
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users) && data.users.length > 0) {
+        saveStoredUsers(data.users);
+      }
+    }
+    const settingsRes = await fetch('/api/admin/settings');
+    if (settingsRes.ok) {
+      const sData = await settingsRes.json();
+      if (sData.success && sData.settings) {
+        localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(sData.settings));
+        window.dispatchEvent(new Event('admin-settings-changed'));
+      }
+    }
+  } catch {
+    // Falls back to local storage if offline
+  }
+}
+
+// Auto sync when loaded in browser
+if (typeof window !== 'undefined') {
+  syncFromMongoDB().catch(() => {});
 }
