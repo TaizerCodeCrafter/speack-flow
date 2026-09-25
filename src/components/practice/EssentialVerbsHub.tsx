@@ -66,7 +66,7 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState<string>('ALL');
-  const [rangeFilter, setRangeFilter] = useState<'all' | '1-50' | '51-100' | '101-150' | '151-200' | '201-250'>('all');
+  const [rangeFilter, setRangeFilter] = useState<string>('all');
   
   // Default to compact list for mobile-first sleek vertical scrolling
   const [viewMode, setViewMode] = useState<'compact' | 'table' | 'cards' | 'flashcards'>('compact');
@@ -286,11 +286,14 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
   const filteredVerbs = useMemo(() => {
     return verbsInActivePack.filter((item, index) => {
       // Range filter
-      if (rangeFilter === '1-50' && (index < 0 || index >= 50)) return false;
-      if (rangeFilter === '51-100' && (index < 50 || index >= 100)) return false;
-      if (rangeFilter === '101-150' && (index < 100 || index >= 150)) return false;
-      if (rangeFilter === '151-200' && (index < 150 || index >= 200)) return false;
-      if (rangeFilter === '201-250' && (index < 200 || index >= 250)) return false;
+      if (rangeFilter !== 'all') {
+        const [startStr, endStr] = rangeFilter.split('-');
+        const start = parseInt(startStr, 10);
+        const end = parseInt(endStr, 10);
+        if (!isNaN(start) && !isNaN(end)) {
+          if (index + 1 < start || index + 1 > end) return false;
+        }
+      }
 
       // Letter filter
       if (selectedLetter !== 'ALL') {
@@ -459,7 +462,7 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
                   {/* Description */}
                   <p className="text-[10px] sm:text-xs text-slate-500 leading-snug line-clamp-2 hidden xs:block">
                     {pack.description || (isFirst
-                      ? 'Master 250 vital action verbs with Sinhala meanings and forms.'
+                      ? 'Master 1,000+ vital action verbs with Sinhala meanings and forms.'
                       : 'Explore conversational verbs for fluent English.')}
                   </p>
 
@@ -1004,19 +1007,17 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
           </div>
         </div>
 
-        {/* Quick Range Selector (1-50, 51-100, 101-150, 151-200, 201-250, All) */}
+        {/* Quick Range Selector */}
         <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar">
           <span className="text-[11px] font-bold text-slate-400 shrink-0 mr-1">Range:</span>
-          {(
-            [
-              { id: 'all', label: `All (${verbsInActivePack.length})` },
-              { id: '1-50', label: '1 - 50' },
-              { id: '51-100', label: '51 - 100' },
-              { id: '101-150', label: '101 - 150' },
-              { id: '151-200', label: '151 - 200' },
-              { id: '201-250', label: '201 - 250' },
-            ] as const
-          ).map((rng) => (
+          {[
+            { id: 'all', label: `All (${verbsInActivePack.length})` },
+            { id: '1-100', label: '1 - 100' },
+            { id: '101-250', label: '101 - 250' },
+            { id: '251-500', label: '251 - 500' },
+            { id: '501-750', label: '501 - 750' },
+            { id: '751-1100', label: '751 - 1000+' },
+          ].map((rng) => (
             <button
               key={rng.id}
               onClick={() => setRangeFilter(rng.id)}
@@ -1077,7 +1078,7 @@ export const EssentialVerbsHub: React.FC<EssentialVerbsHubProps> = ({
               onClick={() => setActivePackId('essential-verbs-1')}
               className="px-4 py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
             >
-              Explore Essential Verbs 1 (වචන 250 බලන්න) →
+              Explore Essential Verbs 1 (වචන 1,000+ බලන්න) →
             </button>
             <button
               onClick={() => setActivePackId(null)}

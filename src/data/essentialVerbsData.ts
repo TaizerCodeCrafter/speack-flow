@@ -1,7 +1,7 @@
 import { EssentialVerbItem, VerbPackCard } from '../types';
 import { PDF_250_VERBS } from './pdf250Verbs';
 
-export const ESSENTIAL_VERBS_STORAGE_KEY = 'taizerflow_essential_verbs_v2';
+export const ESSENTIAL_VERBS_STORAGE_KEY = 'taizerflow_essential_verbs_v3';
 export const ESSENTIAL_VERB_CATEGORIES_KEY = 'taizerflow_verb_categories_v2';
 export const VERB_PACKS_STORAGE_KEY = 'taizerflow_verb_packs_v1';
 
@@ -10,8 +10,8 @@ export const DEFAULT_VERB_PACKS: VerbPackCard[] = [
     id: 'essential-verbs-1',
     title: 'Essential Verbs 1',
     subtitle: 'Daily Action Verbs & Forms (V1 - V5)',
-    description: 'Master vital daily action verbs, forms (V1, V2, V3, V4, V5), and natural sentence usages with Sinhala meanings.',
-    tag: 'Essential Verbs 1 (250 Verbs)',
+    description: 'Master 1,000+ vital daily action verbs, forms (V1, V2, V3, V4, V5), and natural sentence usages with Sinhala meanings.',
+    tag: 'Essential Verbs 1 (1000+ Verbs)',
     iconName: 'Zap',
     colorTheme: 'rose',
     createdAt: 1700000000000,
@@ -37,8 +37,13 @@ export function getStoredVerbPacks(): VerbPackCard[] {
         let updated = [...parsed];
         let hasChanges = false;
         DEFAULT_VERB_PACKS.forEach((defaultPack) => {
-          if (!updated.some((p: VerbPackCard) => p.id === defaultPack.id)) {
+          const existing = updated.find((p: VerbPackCard) => p.id === defaultPack.id);
+          if (!existing) {
             updated.push(defaultPack);
+            hasChanges = true;
+          } else if (defaultPack.id === 'essential-verbs-1' && existing.tag?.includes('250')) {
+            existing.tag = defaultPack.tag;
+            existing.description = defaultPack.description;
             hasChanges = true;
           }
         });
@@ -81,15 +86,15 @@ export const INITIAL_ESSENTIAL_VERBS: EssentialVerbItem[] = PDF_250_VERBS.map((v
 
 export function getStoredEssentialVerbs(): EssentialVerbItem[] {
   try {
-    // Check v2 key first
+    // Check v3 key first
     let raw = localStorage.getItem(ESSENTIAL_VERBS_STORAGE_KEY);
     if (!raw) {
-      // Check legacy v1 key
-      const legacyRaw = localStorage.getItem('taizerflow_essential_verbs_v1');
+      // Check legacy v2 key
+      const legacyRaw = localStorage.getItem('taizerflow_essential_verbs_v2');
       if (legacyRaw) {
         try {
           const legacyParsed = JSON.parse(legacyRaw);
-          if (Array.isArray(legacyParsed) && legacyParsed.length > 20) {
+          if (Array.isArray(legacyParsed) && legacyParsed.length > 500) {
             const normalized = legacyParsed.map((item: EssentialVerbItem) => ({
               ...item,
               cardId: item.cardId || 'essential-verbs-1',
@@ -101,7 +106,7 @@ export function getStoredEssentialVerbs(): EssentialVerbItem[] {
           // ignore
         }
       }
-      // Initialize with full 250 verbs assigned to Essential Verbs 1
+      // Initialize with full 1000+ verbs assigned to Essential Verbs 1
       const defaultWithCard = PDF_250_VERBS.map((v) => ({
         ...v,
         cardId: v.cardId || 'essential-verbs-1',
@@ -112,8 +117,8 @@ export function getStoredEssentialVerbs(): EssentialVerbItem[] {
 
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      if (parsed.length < 100) {
-        // Upgrade to 250 verbs
+      if (parsed.length < 500) {
+        // Upgrade to full 1000+ verbs
         const defaultWithCard = PDF_250_VERBS.map((v) => ({
           ...v,
           cardId: v.cardId || 'essential-verbs-1',
