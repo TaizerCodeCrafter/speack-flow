@@ -1,4 +1,7 @@
 import { SimpleSentenceItem, SentenceCategoryMeta, SentencePackCard } from '../types';
+import { PDF_100_HAVE_DO_BE_SENTENCES } from './pdf100HaveDoBeSentences';
+
+export { PDF_100_HAVE_DO_BE_SENTENCES };
 
 export const SIMPLE_SENTENCES_STORAGE_KEY = 'taizerflow_simple_sentences_v2';
 export const SIMPLE_SENTENCES_CATEGORIES_KEY = 'taizerflow_sentence_categories_v1';
@@ -8,12 +11,12 @@ export const SENTENCE_PACKS_STORAGE_KEY = 'taizerflow_sentence_packs_v1';
 export const DEFAULT_SENTENCE_PACKS: SentencePackCard[] = [
   {
     id: 'simple-sentences-1',
-    title: 'Simple Sentences 1',
+    title: 'Have / Do / Be',
     subtitle: 'Daily Life, Greetings & Routine',
-    description: 'Master everyday English simple sentences with clear Sinhala meanings, natural audio pronunciation, and daily life expressions.',
-    tag: 'Simple Sentences 1',
+    description: 'Master 100 practical Have, Do, Be sentence patterns with clear Sinhala meanings, natural audio pronunciation, and everyday expressions.',
+    tag: 'Have / Do / Be (100+ Sentences)',
     iconName: 'BookOpen',
-    colorTheme: 'sky',
+    colorTheme: 'amber',
     createdAt: 1700000000000,
   },
   {
@@ -36,6 +39,18 @@ export function getStoredSentencePacks(): SentencePackCard[] {
       if (Array.isArray(parsed) && parsed.length > 0) {
         let updated = [...parsed];
         let hasChanges = false;
+
+        // Auto-update first card title to "Have / Do / Be" if it was "Simple Sentences 1"
+        const card1 = updated.find((p: SentencePackCard) => p.id === 'simple-sentences-1');
+        if (card1 && (card1.title === 'Simple Sentences 1' || card1.title === 'Have / Do / Be')) {
+          if (card1.title === 'Simple Sentences 1') {
+            card1.title = 'Have / Do / Be';
+            card1.colorTheme = 'amber';
+            card1.tag = 'Have / Do / Be (100+ Sentences)';
+            hasChanges = true;
+          }
+        }
+
         DEFAULT_SENTENCE_PACKS.forEach((defaultPack) => {
           if (!updated.some((p: SentencePackCard) => p.id === defaultPack.id)) {
             updated.push(defaultPack);
@@ -65,12 +80,52 @@ export function saveStoredSentencePacks(packs: SentencePackCard[]): void {
 
 export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
   {
-    id: 'general',
-    name: 'General',
-    sinhalaName: 'සාමාන්‍ය භාවිතය',
-    description: 'Everyday common English sentences & routine statements',
-    iconName: 'BookOpen',
+    id: 'have_to',
+    name: 'Have to Patterns',
+    sinhalaName: 'Have to / Had to රටා',
+    description: 'Obligation and necessity patterns (have to, had to, must)',
+    iconName: 'Zap',
+    colorTheme: 'amber',
+  },
+  {
+    id: 'be_verbs',
+    name: 'Be Verbs',
+    sinhalaName: 'Be ක්‍රියාපද (Am/Is/Are/Was/Were)',
+    description: 'State of being, presence, and emotions with be verbs',
+    iconName: 'Sparkles',
     colorTheme: 'sky',
+  },
+  {
+    id: 'do_dont',
+    name: "Do & Don't",
+    sinhalaName: "Do / Does / Did / Don't",
+    description: 'Actions, habits, emphasis, and common daily imperatives',
+    iconName: 'BookOpen',
+    colorTheme: 'emerald',
+  },
+  {
+    id: 'continuous_perfect',
+    name: 'Continuous & Perfect',
+    sinhalaName: 'Been / -ing / Done / Gone',
+    description: 'Actions in progress, ongoing states, and completed actions',
+    iconName: 'Layers',
+    colorTheme: 'indigo',
+  },
+  {
+    id: 'negative_patterns',
+    name: 'Negative Patterns',
+    sinhalaName: "සෘණ වාක්‍ය (Haven't / Hadn't / Don't)",
+    description: 'Everyday negative sentences and denial expressions',
+    iconName: 'HelpCircle',
+    colorTheme: 'rose',
+  },
+  {
+    id: 'questions',
+    name: 'Questions',
+    sinhalaName: 'ප්‍රශ්න ඇසීම',
+    description: 'Asking and answering daily questions with total confidence',
+    iconName: 'HelpCircle',
+    colorTheme: 'amber',
   },
   {
     id: 'daily_life',
@@ -87,14 +142,6 @@ export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
     description: 'Fundamental sentence building blocks for beginners',
     iconName: 'Sparkles',
     colorTheme: 'indigo',
-  },
-  {
-    id: 'questions',
-    name: 'Questions',
-    sinhalaName: 'ප්‍රශ්න ඇසීම',
-    description: 'Asking and answering daily questions with total confidence',
-    iconName: 'HelpCircle',
-    colorTheme: 'amber',
   },
   {
     id: 'greetings',
@@ -120,11 +167,20 @@ export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
     iconName: 'Plane',
     colorTheme: 'purple',
   },
+  {
+    id: 'general',
+    name: 'General',
+    sinhalaName: 'සාමාන්‍ය භාවිතය',
+    description: 'Everyday common English sentences & routine statements',
+    iconName: 'BookOpen',
+    colorTheme: 'sky',
+  },
 ];
 
 export const DEFAULT_SENTENCE_CATEGORIES = DEFAULT_CATEGORY_METAS.map((m) => m.name);
 
 export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
+  ...PDF_100_HAVE_DO_BE_SENTENCES,
   {
     id: 'sent-sample-1',
     cardId: 'simple-sentences-1',
@@ -248,35 +304,29 @@ export function getCategoryMeta(categoryName: string, metas?: SentenceCategoryMe
 
   if (found) return found;
 
-  // Auto-generate fallback metadata for dynamic custom categories
-  const fallbackThemes = ['sky', 'emerald', 'indigo', 'amber', 'purple', 'rose', 'teal'];
-  const hash = Math.abs(
-    categoryName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  );
-  const colorTheme = fallbackThemes[hash % fallbackThemes.length];
-
   return {
-    id: categoryName.toLowerCase().replace(/\s+/g, '_'),
+    id: normalized.replace(/\s+/g, '_'),
     name: categoryName,
-    sinhalaName: `${categoryName} වාක්‍ය`,
-    description: `Specialized sentences for ${categoryName}`,
+    sinhalaName: categoryName,
+    description: `Sentences categorized under ${categoryName}`,
     iconName: 'BookOpen',
-    colorTheme,
+    colorTheme: 'sky',
   };
 }
 
 export function getStoredSentenceCategories(): string[] {
   try {
     const raw = localStorage.getItem(SIMPLE_SENTENCES_CATEGORIES_KEY);
-    if (raw !== null) {
+    if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const cleaned = Array.from(new Set(parsed.map((c: string) => c.trim()).filter(Boolean)));
-        return cleaned.length > 0 ? cleaned : ['General'];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Ensure new default categories are also available
+        const combined = Array.from(new Set([...DEFAULT_SENTENCE_CATEGORIES, ...parsed]));
+        return combined;
       }
     }
   } catch (err) {
-    console.error('Failed to load categories', err);
+    console.error('Failed to load sentence categories from storage', err);
   }
   return DEFAULT_SENTENCE_CATEGORIES;
 }
@@ -309,8 +359,9 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
               category: item.category || 'General',
               createdAt: item.createdAt || Date.now(),
             }));
-            saveStoredSimpleSentences(normalized);
-            return normalized;
+            const withPdf = [...PDF_100_HAVE_DO_BE_SENTENCES, ...normalized];
+            saveStoredSimpleSentences(withPdf);
+            return withPdf;
           }
         } catch {
           // ignore
@@ -321,9 +372,20 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
 
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      if (parsed.length === 0) return [];
       let needsSave = false;
-      const normalized = parsed.map((item: Partial<SimpleSentenceItem>, idx: number) => {
+      let workingList = [...parsed];
+
+      // Auto-merge the 100 Have/Do/Be sentences if they are missing
+      const existingIds = new Set(workingList.map((s: any) => s.id));
+      const missingPdfSentences = PDF_100_HAVE_DO_BE_SENTENCES.filter((s) => !existingIds.has(s.id));
+
+      if (missingPdfSentences.length > 0) {
+        // If card 1 has an ID or title matching Have/Do/Be, ensure all missing sentences map to simple-sentences-1
+        workingList = [...missingPdfSentences, ...workingList];
+        needsSave = true;
+      }
+
+      const normalized = workingList.map((item: Partial<SimpleSentenceItem>, idx: number) => {
         if (!item.cardId) {
           needsSave = true;
           return {
@@ -344,6 +406,7 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
           createdAt: item.createdAt || Date.now(),
         };
       });
+
       if (needsSave) {
         saveStoredSimpleSentences(normalized);
       }
@@ -363,6 +426,14 @@ export function saveStoredSimpleSentences(sentences: SimpleSentenceItem[]): void
   } catch (err) {
     console.error('Failed to save simple sentences to storage', err);
   }
+}
+
+export function restoreDefaultHaveDoBeSentences(): SimpleSentenceItem[] {
+  const current = getStoredSimpleSentences();
+  const existingOther = current.filter((s) => !s.id.startsWith('have-do-be-'));
+  const restored = [...PDF_100_HAVE_DO_BE_SENTENCES, ...existingOther];
+  saveStoredSimpleSentences(restored);
+  return restored;
 }
 
 export function speakText(
