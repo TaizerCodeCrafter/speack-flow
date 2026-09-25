@@ -48,10 +48,22 @@ export interface SubCardExample {
 
 export interface SimpleSentenceItem {
   id: string;
+  cardId?: string; // which Sentence Pack Card it belongs to (e.g. "simple-sentences-1")
   english: string;
   sinhala: string;
   category?: string;
   createdAt: number;
+}
+
+export interface SentencePackCard {
+  id: string; // e.g. "simple-sentences-1", "simple-sentences-2"
+  title: string; // e.g. "Simple Sentences 1"
+  subtitle?: string; // e.g. "Daily Routine & Basics"
+  description?: string; // e.g. "Master everyday English simple sentences..."
+  tag?: string; // e.g. "Simple Sentences 1"
+  iconName?: CardIconName;
+  colorTheme?: CardColorTheme;
+  createdAt?: number;
 }
 
 export interface SentenceCategoryMeta {

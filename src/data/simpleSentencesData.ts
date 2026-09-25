@@ -1,8 +1,67 @@
-import { SimpleSentenceItem, SentenceCategoryMeta } from '../types';
+import { SimpleSentenceItem, SentenceCategoryMeta, SentencePackCard } from '../types';
 
-export const SIMPLE_SENTENCES_STORAGE_KEY = 'taizerflow_simple_sentences_v1';
+export const SIMPLE_SENTENCES_STORAGE_KEY = 'taizerflow_simple_sentences_v2';
 export const SIMPLE_SENTENCES_CATEGORIES_KEY = 'taizerflow_sentence_categories_v1';
 export const SIMPLE_SENTENCES_METAS_KEY = 'taizerflow_sentence_category_metas_v1';
+export const SENTENCE_PACKS_STORAGE_KEY = 'taizerflow_sentence_packs_v1';
+
+export const DEFAULT_SENTENCE_PACKS: SentencePackCard[] = [
+  {
+    id: 'simple-sentences-1',
+    title: 'Simple Sentences 1',
+    subtitle: 'Daily Life, Greetings & Routine',
+    description: 'Master everyday English simple sentences with clear Sinhala meanings, natural audio pronunciation, and daily life expressions.',
+    tag: 'Simple Sentences 1',
+    iconName: 'BookOpen',
+    colorTheme: 'sky',
+    createdAt: 1700000000000,
+  },
+  {
+    id: 'simple-sentences-2',
+    title: 'Simple Sentences 2',
+    subtitle: 'Work, Travel, Questions & Study',
+    description: 'Advance your fluency with practical work, travel, question patterns, and polite conversation sentences.',
+    tag: 'Simple Sentences 2',
+    iconName: 'Sparkles',
+    colorTheme: 'emerald',
+    createdAt: 1700000001000,
+  },
+];
+
+export function getStoredSentencePacks(): SentencePackCard[] {
+  try {
+    const raw = localStorage.getItem(SENTENCE_PACKS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        let updated = [...parsed];
+        let hasChanges = false;
+        DEFAULT_SENTENCE_PACKS.forEach((defaultPack) => {
+          if (!updated.some((p: SentencePackCard) => p.id === defaultPack.id)) {
+            updated.push(defaultPack);
+            hasChanges = true;
+          }
+        });
+        if (hasChanges) {
+          saveStoredSentencePacks(updated);
+        }
+        return updated;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load sentence packs from storage', err);
+  }
+  return DEFAULT_SENTENCE_PACKS;
+}
+
+export function saveStoredSentencePacks(packs: SentencePackCard[]): void {
+  try {
+    localStorage.setItem(SENTENCE_PACKS_STORAGE_KEY, JSON.stringify(packs));
+    window.dispatchEvent(new Event('storage'));
+  } catch (err) {
+    console.error('Failed to save sentence packs to storage', err);
+  }
+}
 
 export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
   {
@@ -68,6 +127,7 @@ export const DEFAULT_SENTENCE_CATEGORIES = DEFAULT_CATEGORY_METAS.map((m) => m.n
 export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   {
     id: 'sent-sample-1',
+    cardId: 'simple-sentences-1',
     english: 'I wake up at six in the morning.',
     sinhala: 'මම උදෑසන හයට අවදි වෙමි.',
     category: 'Daily Life',
@@ -75,6 +135,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-2',
+    cardId: 'simple-sentences-1',
     english: 'She prepares breakfast for the family.',
     sinhala: 'ඇය පවුල සඳහා උදෑසන ආහාරය පිළියෙල කරයි.',
     category: 'Daily Life',
@@ -82,6 +143,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-3',
+    cardId: 'simple-sentences-1',
     english: 'We drink coffee together every afternoon.',
     sinhala: 'අපි සෑම දහවල් කාලයකම එකට කෝපි බොමු.',
     category: 'Daily Life',
@@ -89,6 +151,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-4',
+    cardId: 'simple-sentences-1',
     english: 'This is my favorite English book.',
     sinhala: 'මේ මගේ ප්‍රියතම ඉංග්‍රීසි පොතයි.',
     category: 'Basics',
@@ -96,6 +159,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-5',
+    cardId: 'simple-sentences-1',
     english: 'The weather is very pleasant today.',
     sinhala: 'අද කාලගුණය ඉතා ප්‍රසන්නයි.',
     category: 'Basics',
@@ -103,6 +167,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-6',
+    cardId: 'simple-sentences-2',
     english: 'Where is the nearest bus station?',
     sinhala: 'ළඟම ඇති බස් නැවතුම්පොළ කොහේද?',
     category: 'Questions',
@@ -110,6 +175,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-7',
+    cardId: 'simple-sentences-2',
     english: 'What time does the English lesson start?',
     sinhala: 'ඉංග්‍රීසි පාඩම ආරම්භ වන්නේ කීයටද?',
     category: 'Questions',
@@ -117,6 +183,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-8',
+    cardId: 'simple-sentences-1',
     english: 'Good morning! Have a wonderful day ahead.',
     sinhala: 'සුබ උදෑසනක්! ඔබට සුබ දවසක් වේවා.',
     category: 'Greetings',
@@ -124,6 +191,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-9',
+    cardId: 'simple-sentences-1',
     english: 'Thank you so much for your kind help.',
     sinhala: 'ඔබගේ කාරුණික සහයෝගයට බොහෝම ස්තූතියි.',
     category: 'Greetings',
@@ -131,6 +199,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-10',
+    cardId: 'simple-sentences-2',
     english: 'I completed all my assignments yesterday.',
     sinhala: 'මම ඊයේ මගේ සියලුම පැවරුම් අවසන් කළෙමි.',
     category: 'Work & Study',
@@ -138,6 +207,7 @@ export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   },
   {
     id: 'sent-sample-11',
+    cardId: 'simple-sentences-2',
     english: 'Could you please show me the way to the city center?',
     sinhala: 'කරුණාකර මට නගර මධ්‍යස්ථානයට යන මාර්ගය පෙන්විය හැකිද?',
     category: 'Travel',
@@ -223,21 +293,61 @@ export function saveStoredSentenceCategories(categories: string[]): void {
 
 export function getStoredSimpleSentences(): SimpleSentenceItem[] {
   try {
-    const raw = localStorage.getItem(SIMPLE_SENTENCES_STORAGE_KEY);
+    let raw = localStorage.getItem(SIMPLE_SENTENCES_STORAGE_KEY);
     if (!raw) {
-      // First time initialization: populate default samples so cards are immediately visible!
+      // Check legacy v1 key
+      const legacyRaw = localStorage.getItem('taizerflow_simple_sentences_v1');
+      if (legacyRaw) {
+        try {
+          const parsedLegacy = JSON.parse(legacyRaw);
+          if (Array.isArray(parsedLegacy) && parsedLegacy.length > 0) {
+            const normalized = parsedLegacy.map((item: Partial<SimpleSentenceItem>, idx: number) => ({
+              id: item.id || `sentence-${Date.now()}-${idx}`,
+              cardId: item.cardId || (idx % 2 === 0 ? 'simple-sentences-1' : 'simple-sentences-2'),
+              english: (item.english || '').trim(),
+              sinhala: (item.sinhala || '').trim(),
+              category: item.category || 'General',
+              createdAt: item.createdAt || Date.now(),
+            }));
+            saveStoredSimpleSentences(normalized);
+            return normalized;
+          }
+        } catch {
+          // ignore
+        }
+      }
       return INITIAL_SAMPLE_SENTENCES;
     }
+
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       if (parsed.length === 0) return [];
-      return parsed.map((item: Partial<SimpleSentenceItem>, idx: number) => ({
-        id: item.id || `sentence-${Date.now()}-${idx}`,
-        english: (item.english || '').trim(),
-        sinhala: (item.sinhala || '').trim(),
-        category: item.category || 'General',
-        createdAt: item.createdAt || Date.now(),
-      }));
+      let needsSave = false;
+      const normalized = parsed.map((item: Partial<SimpleSentenceItem>, idx: number) => {
+        if (!item.cardId) {
+          needsSave = true;
+          return {
+            id: item.id || `sentence-${Date.now()}-${idx}`,
+            cardId: 'simple-sentences-1',
+            english: (item.english || '').trim(),
+            sinhala: (item.sinhala || '').trim(),
+            category: item.category || 'General',
+            createdAt: item.createdAt || Date.now(),
+          };
+        }
+        return {
+          id: item.id || `sentence-${Date.now()}-${idx}`,
+          cardId: item.cardId,
+          english: (item.english || '').trim(),
+          sinhala: (item.sinhala || '').trim(),
+          category: item.category || 'General',
+          createdAt: item.createdAt || Date.now(),
+        };
+      });
+      if (needsSave) {
+        saveStoredSimpleSentences(normalized);
+      }
+      return normalized;
     }
   } catch (err) {
     console.error('Failed to load simple sentences from storage', err);
