@@ -1,7 +1,8 @@
 import { SimpleSentenceItem, SentenceCategoryMeta, SentencePackCard } from '../types';
 import { PDF_100_HAVE_DO_BE_SENTENCES } from './pdf100HaveDoBeSentences';
+import { PDF_100_MODAL_SENTENCES } from './pdf100ModalSentences';
 
-export { PDF_100_HAVE_DO_BE_SENTENCES };
+export { PDF_100_HAVE_DO_BE_SENTENCES, PDF_100_MODAL_SENTENCES };
 
 export const SIMPLE_SENTENCES_STORAGE_KEY = 'taizerflow_simple_sentences_v2';
 export const SIMPLE_SENTENCES_CATEGORIES_KEY = 'taizerflow_sentence_categories_v1';
@@ -21,12 +22,12 @@ export const DEFAULT_SENTENCE_PACKS: SentencePackCard[] = [
   },
   {
     id: 'simple-sentences-2',
-    title: 'Simple Sentences 2',
-    subtitle: 'Work, Travel, Questions & Study',
-    description: 'Advance your fluency with practical work, travel, question patterns, and polite conversation sentences.',
-    tag: 'Simple Sentences 2',
+    title: 'Can / Will / Would / Should / Must',
+    subtitle: 'Questions & Study',
+    description: 'Master 100 essential modal verbs (Can, Could, Will, Would, Should, Must, May, Might, Need) with Sinhala meanings and audio.',
+    tag: 'Can / Will / Would / Should / Must (100+ Sentences)',
     iconName: 'Sparkles',
-    colorTheme: 'emerald',
+    colorTheme: 'purple',
     createdAt: 1700000001000,
   },
 ];
@@ -47,6 +48,18 @@ export function getStoredSentencePacks(): SentencePackCard[] {
             card1.title = 'Have / Do / Be';
             card1.colorTheme = 'amber';
             card1.tag = 'Have / Do / Be (100+ Sentences)';
+            hasChanges = true;
+          }
+        }
+
+        // Auto-update second card title to "Can / Will / Would / Should / Must" if it was "Simple Sentences 2"
+        const card2 = updated.find((p: SentencePackCard) => p.id === 'simple-sentences-2');
+        if (card2 && (card2.title === 'Simple Sentences 2' || card2.title.includes('Can / Will'))) {
+          if (card2.title === 'Simple Sentences 2') {
+            card2.title = 'Can / Will / Would / Should / Must';
+            card2.subtitle = 'Questions & Study';
+            card2.colorTheme = 'purple';
+            card2.tag = 'Can / Will / Would / Should / Must (100+ Sentences)';
             hasChanges = true;
           }
         }
@@ -79,6 +92,70 @@ export function saveStoredSentencePacks(packs: SentencePackCard[]): void {
 }
 
 export const DEFAULT_CATEGORY_METAS: SentenceCategoryMeta[] = [
+  {
+    id: 'can_could',
+    name: 'Can & Could',
+    sinhalaName: 'Can / Could (හැකියාව)',
+    description: 'Ability, permission, and polite requests with Can and Could',
+    iconName: 'Sparkles',
+    colorTheme: 'purple',
+  },
+  {
+    id: 'will_wont',
+    name: "Will & Won't",
+    sinhalaName: "Will / Won't (අනාගතය)",
+    description: 'Future intentions, promises, decisions, and refusals',
+    iconName: 'Zap',
+    colorTheme: 'indigo',
+  },
+  {
+    id: 'would_wouldnt',
+    name: "Would & Wouldn't",
+    sinhalaName: "Would / Wouldn't (කැමැත්ත / ආචාරශීලී)",
+    description: 'Polite offers, preferences, and conditional statements',
+    iconName: 'Smile',
+    colorTheme: 'teal',
+  },
+  {
+    id: 'should_shouldnt',
+    name: "Should & Shouldn't",
+    sinhalaName: "Should / Shouldn't (උපදෙස් / යුතුකම)",
+    description: 'Advice, recommendations, and moral obligations',
+    iconName: 'BookOpen',
+    colorTheme: 'emerald',
+  },
+  {
+    id: 'must_mustnt',
+    name: "Must & Mustn't",
+    sinhalaName: "Must / Mustn't (අනිවාර්ය)",
+    description: 'Strong obligation, necessity, prohibition, and logical deduction',
+    iconName: 'HelpCircle',
+    colorTheme: 'rose',
+  },
+  {
+    id: 'may_might',
+    name: 'May & Might',
+    sinhalaName: 'May / Might (හැකියාව / අවසර)',
+    description: 'Possibility, uncertainty, and formal permission',
+    iconName: 'Sun',
+    colorTheme: 'amber',
+  },
+  {
+    id: 'need_have_to',
+    name: 'Need & Have to',
+    sinhalaName: 'Need / Needn\'t / Have to',
+    description: 'Requirements, necessity, and lack of obligation',
+    iconName: 'Layers',
+    colorTheme: 'sky',
+  },
+  {
+    id: 'used_to_going_to',
+    name: 'Used to & Going to',
+    sinhalaName: 'Used to / Going to (පුරුදු / සැලසුම්)',
+    description: 'Past habits, future plans, and becoming accustomed to something',
+    iconName: 'RotateCcw',
+    colorTheme: 'purple',
+  },
   {
     id: 'have_to',
     name: 'Have to Patterns',
@@ -181,6 +258,7 @@ export const DEFAULT_SENTENCE_CATEGORIES = DEFAULT_CATEGORY_METAS.map((m) => m.n
 
 export const INITIAL_SAMPLE_SENTENCES: SimpleSentenceItem[] = [
   ...PDF_100_HAVE_DO_BE_SENTENCES,
+  ...PDF_100_MODAL_SENTENCES,
   {
     id: 'sent-sample-1',
     cardId: 'simple-sentences-1',
@@ -320,7 +398,6 @@ export function getStoredSentenceCategories(): string[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Ensure new default categories are also available
         const combined = Array.from(new Set([...DEFAULT_SENTENCE_CATEGORIES, ...parsed]));
         return combined;
       }
@@ -345,7 +422,6 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
   try {
     let raw = localStorage.getItem(SIMPLE_SENTENCES_STORAGE_KEY);
     if (!raw) {
-      // Check legacy v1 key
       const legacyRaw = localStorage.getItem('taizerflow_simple_sentences_v1');
       if (legacyRaw) {
         try {
@@ -359,7 +435,7 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
               category: item.category || 'General',
               createdAt: item.createdAt || Date.now(),
             }));
-            const withPdf = [...PDF_100_HAVE_DO_BE_SENTENCES, ...normalized];
+            const withPdf = [...PDF_100_HAVE_DO_BE_SENTENCES, ...PDF_100_MODAL_SENTENCES, ...normalized];
             saveStoredSimpleSentences(withPdf);
             return withPdf;
           }
@@ -375,13 +451,13 @@ export function getStoredSimpleSentences(): SimpleSentenceItem[] {
       let needsSave = false;
       let workingList = [...parsed];
 
-      // Auto-merge the 100 Have/Do/Be sentences if they are missing
+      // Auto-merge the 100 Have/Do/Be sentences and 100 Modal sentences if they are missing
       const existingIds = new Set(workingList.map((s: any) => s.id));
-      const missingPdfSentences = PDF_100_HAVE_DO_BE_SENTENCES.filter((s) => !existingIds.has(s.id));
+      const missingHaveDoBe = PDF_100_HAVE_DO_BE_SENTENCES.filter((s) => !existingIds.has(s.id));
+      const missingModal = PDF_100_MODAL_SENTENCES.filter((s) => !existingIds.has(s.id));
 
-      if (missingPdfSentences.length > 0) {
-        // If card 1 has an ID or title matching Have/Do/Be, ensure all missing sentences map to simple-sentences-1
-        workingList = [...missingPdfSentences, ...workingList];
+      if (missingHaveDoBe.length > 0 || missingModal.length > 0) {
+        workingList = [...missingHaveDoBe, ...missingModal, ...workingList];
         needsSave = true;
       }
 
@@ -432,6 +508,24 @@ export function restoreDefaultHaveDoBeSentences(): SimpleSentenceItem[] {
   const current = getStoredSimpleSentences();
   const existingOther = current.filter((s) => !s.id.startsWith('have-do-be-'));
   const restored = [...PDF_100_HAVE_DO_BE_SENTENCES, ...existingOther];
+  saveStoredSimpleSentences(restored);
+  return restored;
+}
+
+export function restoreDefaultModalSentences(): SimpleSentenceItem[] {
+  const current = getStoredSimpleSentences();
+  const existingOther = current.filter((s) => !s.id.startsWith('modal-sent-'));
+  const restored = [...PDF_100_MODAL_SENTENCES, ...existingOther];
+  saveStoredSimpleSentences(restored);
+  return restored;
+}
+
+export function restoreAllPackSentences(): SimpleSentenceItem[] {
+  const current = getStoredSimpleSentences();
+  const existingOther = current.filter(
+    (s) => !s.id.startsWith('have-do-be-') && !s.id.startsWith('modal-sent-')
+  );
+  const restored = [...PDF_100_HAVE_DO_BE_SENTENCES, ...PDF_100_MODAL_SENTENCES, ...existingOther];
   saveStoredSimpleSentences(restored);
   return restored;
 }

@@ -31,6 +31,8 @@ import {
   DEFAULT_SENTENCE_PACKS,
   speakText,
   restoreDefaultHaveDoBeSentences,
+  restoreDefaultModalSentences,
+  restoreAllPackSentences,
 } from '../../data/simpleSentencesData';
 import { getCurrentUser } from '../../utils/authStorage';
 
@@ -456,17 +458,17 @@ export const SimpleSentenceHub: React.FC<SimpleSentenceHubProps> = ({
 
             <button
               onClick={() => {
-                if (window.confirm('Restore all 100 Have/Do/Be sentences from PDF to "Have / Do / Be" card? ("Have / Do / Be" කාඩ්පතට PDF එකේ වාක්‍ය 100 නැවත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
-                  const restored = restoreDefaultHaveDoBeSentences();
+                if (window.confirm('Restore all 200+ sentences from both PDFs to cards? (PDF ගොනු දෙකේම ඇති වාක්‍ය 200+ කාඩ්පත් වෙත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                  const restored = restoreAllPackSentences();
                   setSentences(restored);
-                  showToast('100 Have/Do/Be sentences restored successfully (වාක්‍ය 100 සාර්ථකව එක් විය)!');
+                  showToast('All 200+ sentences restored successfully (වාක්‍ය 200+ සාර්ථකව එක් විය)!');
                 }
               }}
-              title="Restore all 100 sentences from PDF"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 text-xs font-bold shadow-2xs transition-all cursor-pointer hover:scale-102"
+              title="Restore all 200+ sentences from both PDFs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/80 text-xs font-bold shadow-2xs transition-all cursor-pointer hover:scale-102"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-              <span>Reset 100 Sentences</span>
+              <RotateCcw className="w-3.5 h-3.5 text-purple-600" />
+              <span>Reset 200+ Sentences</span>
             </button>
 
             {onOpenAdmin && (

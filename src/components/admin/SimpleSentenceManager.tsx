@@ -29,6 +29,8 @@ import {
   saveStoredSentencePacks,
   DEFAULT_SENTENCE_PACKS,
   restoreDefaultHaveDoBeSentences,
+  restoreDefaultModalSentences,
+  restoreAllPackSentences,
 } from '../../data/simpleSentencesData';
 
 interface SimpleSentenceManagerProps {
@@ -556,18 +558,37 @@ export const SimpleSentenceManager: React.FC<SimpleSentenceManagerProps> = ({ on
             <button
               type="button"
               onClick={() => {
-                if (window.confirm('Restore all 100 Have/Do/Be sentences to "Have / Do / Be" card? ("Have / Do / Be" කාඩ්පතට PDF එකේ වාක්‍ය 100 නැවත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
-                  const restored = restoreDefaultHaveDoBeSentences();
-                  setSentences(restored);
-                  setSelectedPackId('simple-sentences-1');
-                  onShowToast('100 Have/Do/Be sentences restored successfully (වාක්‍ය 100 සාර්ථකව එක් විය)!');
+                if (selectedPackId === 'simple-sentences-2') {
+                  if (window.confirm('Restore 100 Modal sentences (Can/Will/Would/Should/Must) to this card? ("Can / Will / Would / Should / Must" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                    const restored = restoreDefaultModalSentences();
+                    setSentences(restored);
+                    onShowToast('100 Modal sentences restored to "Can / Will / Would / Should / Must"!');
+                  }
+                } else if (selectedPackId === 'simple-sentences-1') {
+                  if (window.confirm('Restore 100 Have/Do/Be sentences to "Have / Do / Be" card? ("Have / Do / Be" කාඩ්පතට PDF එකේ වාක්‍ය 100 යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                    const restored = restoreDefaultHaveDoBeSentences();
+                    setSentences(restored);
+                    onShowToast('100 Have/Do/Be sentences restored successfully!');
+                  }
+                } else {
+                  if (window.confirm('Restore all 200+ sentences from both PDFs to cards? (PDF ගොනු දෙකේම වාක්‍ය 200+ නැවත යාවත්කාලීන කිරීමට අවශ්‍යද?)')) {
+                    const restored = restoreAllPackSentences();
+                    setSentences(restored);
+                    onShowToast('All 200+ sentences from both PDFs restored successfully!');
+                  }
                 }
               }}
-              title="Restore full 100 sentences from PDF to Have / Do / Be card"
+              title="Restore 100 sentences from PDF to active card"
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Reset 100 Sentences</span>
+              <span className="hidden sm:inline">
+                {selectedPackId === 'simple-sentences-2'
+                  ? 'Reset Modal 100'
+                  : selectedPackId === 'simple-sentences-1'
+                  ? 'Reset Have/Do/Be 100'
+                  : 'Reset All 200+'}
+              </span>
             </button>
           </div>
         </div>
